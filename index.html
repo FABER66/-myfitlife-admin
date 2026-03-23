@@ -243,8 +243,9 @@ async function loadUsers() {
     });
     var d = await r.json();
     if (d.error) throw new Error(d.error);
-    allUsers = d.users || [];
-    var workouts = d.workouts || [];
+    // Gestisce sia array diretto che oggetto {users:[]}
+    allUsers = Array.isArray(d) ? d : (d.users || []);
+    var workouts = Array.isArray(d.workouts) ? d.workouts : [];
 
     // Aggiungi conteggio workout per utente
     allUsers.forEach(function(u) {
