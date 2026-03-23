@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyFitLife Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--acc:#c6a56b;--bg:#080807;--s1:#111110;--s2:#1a1a18;--bd:#2a2a27;--mu:#7a7567;--txt:#f0ece3;--txt2:#b8b2a7;--g:#59c7c0;--o:#ff8a5b;--r:12px}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+/* LOGIN */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-card{background:var(--s1);border:1px solid var(--bd);border-radius:20px;padding:40px;width:100%;max-width:380px;text-align:center}
+.login-logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:4px}
+.login-logo span{color:var(--acc)}
+.login-sub{font-size:12px;color:var(--mu);letter-spacing:2px;text-transform:uppercase;margin-bottom:32px}
+.fi{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--bd);background:var(--s2);color:var(--txt);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;margin-bottom:10px}
+.fi:focus{border-color:var(--acc)}
+.bp{width:100%;padding:13px;border-radius:12px;border:none;background:var(--acc);color:#000;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
+.bp:hover{background:#e8c98a}
+.err{color:#ff8866;font-size:13px;margin-bottom:10px;display:none}
+
+/* APP */
+#app{display:none}
+.hdr{background:var(--s1);border-bottom:1px solid var(--bd);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.hlogo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800}
+.hlogo span{color:var(--acc)}
+.hsub{font-size:11px;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.hright{display:flex;align-items:center;gap:12px}
+.badge{background:rgba(198,165,107,.1);border:1px solid rgba(198,165,107,.2);color:var(--acc);font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+.logout-btn{background:none;border:1px solid var(--bd);color:var(--mu);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif}
+.logout-btn:hover{border-color:var(--o);color:var(--o)}
+
+.main{padding:24px;max-width:1400px;margin:0 auto}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:18px}
+.stat-label{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.stat-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1}
+.stat-sub{font-size:11px;color:var(--mu);margin-top:4px}
+
+/* FILTRI */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:200px;padding:9px 13px;border-radius:9px;border:1.5px solid var(--bd);background:var(--s2);color:var(--txt);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
+.search:focus{border-color:var(--acc)}
+.filter-btn{padding:8px 14px;border-radius:9px;border:1.5px solid var(--bd);background:none;color:var(--mu);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.filter-btn.on{border-color:var(--acc);color:var(--acc);background:rgba(198,165,107,.08)}
+.export-btn{padding:8px 16px;border-radius:9px;border:none;background:var(--acc);color:#000;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* TABELLA */
+.table-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.table-hdr{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr 1fr 80px;gap:12px;padding:12px 16px;border-bottom:1px solid var(--bd);font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px}
+.table-row{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr 1fr 80px;gap:12px;padding:13px 16px;border-bottom:1px solid var(--bd);align-items:center;transition:background .15s}
+.table-row:last-child{border:none}
+.table-row:hover{background:var(--s2)}
+.user-info .name{font-weight:600;font-size:14px}
+.user-info .email{font-size:12px;color:var(--mu);margin-top:2px}
+.cell{font-size:13px;color:var(--txt2)}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.pill.yes{background:rgba(89,199,192,.1);color:var(--g);border:1px solid rgba(89,199,192,.2)}
+.pill.no{background:rgba(122,117,103,.1);color:var(--mu);border:1px solid var(--bd)}
+.pill.active{background:rgba(198,165,107,.1);color:var(--acc);border:1px solid rgba(198,165,107,.2)}
+.pill.new{background:rgba(89,199,192,.1);color:var(--g);border:1px solid rgba(89,199,192,.2)}
+.action-btn{background:none;border:1px solid var(--bd);color:var(--mu);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif}
+.action-btn:hover{border-color:var(--acc);color:var(--acc)}
+
+/* EMPTY / LOADING */
+.empty{text-align:center;padding:60px 20px;color:var(--mu)}
+.empty .icon{font-size:40px;margin-bottom:12px}
+.loading{text-align:center;padding:40px;color:var(--mu);font-size:14px}
+.loading::after{content:'...';animation:dt 1.2s steps(4,end) infinite}
+@keyframes dt{0%,20%{content:'.'}40%{content:'..'}60%,100%{content:'...'}}
+
+/* MODAL DETTAGLIO */
+.mov{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.mov.on{display:flex}
+.mod{background:var(--s1);border:1px solid var(--bd);border-radius:20px;padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.mod-tit{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.mod-close{background:none;border:none;color:var(--mu);cursor:pointer;font-size:20px;padding:0}
+.mod-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd);font-size:14px}
+.mod-row:last-child{border:none}
+.mod-label{color:var(--mu)}
+.mod-val{font-weight:600;text-align:right;max-width:60%}
+
+@media(max-width:900px){
+  .table-hdr{grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .table-hdr span:nth-child(n+4){display:none}
+  .table-row{grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .table-row .cell:nth-child(n+4){display:none}
+}
+@media(max-width:600px){
+  .main{padding:16px}
+  .table-hdr{grid-template-columns:1fr 1fr;gap:8px}
+  .table-hdr span:nth-child(n+3){display:none}
+  .table-row{grid-template-columns:1fr 1fr;gap:8px}
+  .table-row .cell:nth-child(n+3){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <div class="login-logo">My<span>FitLife</span></div>
+    <div class="login-sub">Admin Panel</div>
+    <div class="err" id="lerr"></div>
+    <input class="fi" id="l-pw" type="password" placeholder="Password admin" autocomplete="current-password">
+    <button class="bp" onclick="doLogin()">Accedi</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="hdr">
+    <div>
+      <div class="hlogo">My<span>FitLife</span> <span style="font-size:12px;color:var(--mu);font-family:'DM Sans',sans-serif;font-weight:400">Admin</span></div>
+      <div class="hsub">Pannello di controllo</div>
+    </div>
+    <div class="hright">
+      <div class="badge" id="total-badge">0 utenti</div>
+      <button class="logout-btn" onclick="doLogout()">Esci</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- STATS -->
+    <div class="stats" id="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Utenti totali</div>
+        <div class="stat-val" id="s-tot" style="color:var(--acc)">-</div>
+        <div class="stat-sub">registrati</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Consenso marketing</div>
+        <div class="stat-val" id="s-mkt" style="color:var(--g)">-</div>
+        <div class="stat-sub">hanno accettato</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Nuovi questo mese</div>
+        <div class="stat-val" id="s-new" style="color:var(--g)">-</div>
+        <div class="stat-sub">registrazioni</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Workout totali</div>
+        <div class="stat-val" id="s-wkt" style="color:var(--acc)">-</div>
+        <div class="stat-sub">sessioni salvate</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <input class="search" id="search" placeholder="Cerca per nome o email..." oninput="filterUsers()">
+      <button class="filter-btn on" id="f-all" onclick="setFilter('all')">Tutti</button>
+      <button class="filter-btn" id="f-mkt" onclick="setFilter('mkt')">Solo marketing</button>
+      <button class="filter-btn" id="f-new" onclick="setFilter('new')">Nuovi (7gg)</button>
+      <button class="export-btn" onclick="exportCSV()">Esporta CSV</button>
+    </div>
+
+    <!-- TABELLA -->
+    <div class="table-wrap">
+      <div class="table-hdr">
+        <span>Utente</span>
+        <span>Email</span>
+        <span>Registrato</span>
+        <span>Ultimo accesso</span>
+        <span>Marketing</span>
+        <span>Workout</span>
+        <span></span>
+      </div>
+      <div id="user-list"><div class="loading">Carico utenti</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETTAGLIO -->
+<div class="mov" id="mod-detail">
+  <div class="mod">
+    <div class="mod-tit">
+      <span id="mod-nm">Dettaglio utente</span>
+      <button class="mod-close" onclick="chiudiMod()">×</button>
+    </div>
+    <div id="mod-body"></div>
+  </div>
+</div>
+
+<script>
+// CONFIG - cambia questa password
+var ADMIN_PW = '3003TERRY@';
+var SUPABASE_URL = 'https://lrmyzjvlwqyzqmjzkafe.supabase.co';
+var SUPABASE_KEY = '';  // viene caricata dal server
+
+var allUsers = [];
+var currentFilter = 'all';
+var isAuth = false;
+
+// LOGIN
+function doLogin() {
+  var pw = document.getElementById('l-pw').value;
+  if (pw === ADMIN_PW) {
+    isAuth = true;
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    localStorage.setItem('admin_auth', '1');
+    loadUsers();
+  } else {
+    var e = document.getElementById('lerr');
+    e.textContent = 'Password errata.';
+    e.style.display = 'block';
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('admin_auth');
+  location.reload();
+}
+
+document.getElementById('l-pw').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+// Ripristina sessione
+if (localStorage.getItem('admin_auth') === '1') {
+  isAuth = true;
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadUsers();
+}
+
+// CARICA UTENTI dal proxy Vercel
+async function loadUsers() {
+  try {
+    var r = await fetch('https://app.myfitlife.it/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'admin',
+        adminPw: ADMIN_PW
+      })
+    });
+    var d = await r.json();
+    if (d.error) throw new Error(d.error);
+    allUsers = d.users || [];
+    var workouts = d.workouts || [];
+
+    // Aggiungi conteggio workout per utente
+    allUsers.forEach(function(u) {
+      u.workout_count = workouts.filter(function(w) { return w.user_id === u.id; }).length;
+    });
+
+    renderStats();
+    renderUsers(allUsers);
+  } catch(e) {
+    document.getElementById('user-list').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Errore caricamento: ' + e.message + '</p></div>';
+  }
+}
+
+function renderStats() {
+  var tot = allUsers.length;
+  var mkt = allUsers.filter(function(u) { return u.marketing; }).length;
+  var now = new Date();
+  var newUsers = allUsers.filter(function(u) {
+    if (!u.created_at) return false;
+    var diff = (now - new Date(u.created_at)) / 86400000;
+    return diff <= 30;
+  }).length;
+  var wktTot = allUsers.reduce(function(a, u) { return a + (u.workout_count || 0); }, 0);
+
+  document.getElementById('s-tot').textContent = tot;
+  document.getElementById('s-mkt').textContent = mkt;
+  document.getElementById('s-new').textContent = newUsers;
+  document.getElementById('s-wkt').textContent = wktTot;
+  document.getElementById('total-badge').textContent = tot + ' utenti';
+}
+
+function renderUsers(users) {
+  if (!users.length) {
+    document.getElementById('user-list').innerHTML = '<div class="empty"><div class="icon">👥</div><p>Nessun utente trovato.</p></div>';
+    return;
+  }
+  var h = '';
+  users.forEach(function(u) {
+    var reg = u.created_at ? new Date(u.created_at).toLocaleDateString('it-IT', {day:'numeric',month:'short',year:'numeric'}) : '-';
+    var last = u.last_login ? new Date(u.last_login).toLocaleDateString('it-IT', {day:'numeric',month:'short'}) : '-';
+    var isNew = u.created_at && (new Date() - new Date(u.created_at)) / 86400000 <= 7;
+    h += '<div class="table-row">';
+    h += '<div class="user-info"><div class="name">' + (u.nm || '-') + ' ' + (u.cg || '') + (isNew ? ' <span class="pill new">Nuovo</span>' : '') + '</div></div>';
+    h += '<div class="cell" style="font-size:12px;word-break:break-all">' + (u.em || '-') + '</div>';
+    h += '<div class="cell">' + reg + '</div>';
+    h += '<div class="cell">' + last + '</div>';
+    h += '<div class="cell"><span class="pill ' + (u.marketing ? 'yes' : 'no') + '">' + (u.marketing ? 'Si' : 'No') + '</span></div>';
+    h += '<div class="cell">' + (u.workout_count || 0) + '</div>';
+    h += '<div class="cell"><button class="action-btn" onclick="showDetail(\'' + u.id + '\')">Vedi</button></div>';
+    h += '</div>';
+  });
+  document.getElementById('user-list').innerHTML = h;
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.className = 'filter-btn'; });
+  document.getElementById('f-' + f).className = 'filter-btn on';
+  filterUsers();
+}
+
+function filterUsers() {
+  var q = document.getElementById('search').value.toLowerCase();
+  var filtered = allUsers.filter(function(u) {
+    var match = !q || (u.nm && u.nm.toLowerCase().includes(q)) || (u.cg && u.cg.toLowerCase().includes(q)) || (u.em && u.em.toLowerCase().includes(q));
+    if (!match) return false;
+    if (currentFilter === 'mkt') return u.marketing;
+    if (currentFilter === 'new') return u.created_at && (new Date() - new Date(u.created_at)) / 86400000 <= 7;
+    return true;
+  });
+  renderUsers(filtered);
+}
+
+function showDetail(id) {
+  var u = allUsers.find(function(x) { return x.id === id; });
+  if (!u) return;
+  document.getElementById('mod-nm').textContent = (u.nm || '') + ' ' + (u.cg || '');
+  var rows = [
+    ['Email', u.em || '-'],
+    ['Eta', (u.et || '-') + (u.et ? ' anni' : '')],
+    ['Sesso', u.sx === 'M' ? 'Maschio' : u.sx === 'F' ? 'Femmina' : '-'],
+    ['Peso', (u.ps || '-') + (u.ps ? ' kg' : '')],
+    ['Altezza', (u.al || '-') + (u.al ? ' cm' : '')],
+    ['Obiettivo', u.ob || '-'],
+    ['Tipo lavoro', u.lav || '-'],
+    ['Fabbisogno', u.fab ? u.fab.kc + ' kcal/gg' : '-'],
+    ['Peso obiettivo', (u.po || '-') + (u.po ? ' kg' : '')],
+    ['Workout salvati', u.workout_count || 0],
+    ['Consenso marketing', u.marketing ? 'Si' : 'No'],
+    ['Registrato il', u.created_at ? new Date(u.created_at).toLocaleDateString('it-IT', {day:'numeric',month:'long',year:'numeric'}) : '-'],
+    ['Ultimo accesso', u.last_login ? new Date(u.last_login).toLocaleDateString('it-IT', {day:'numeric',month:'long',year:'numeric'}) : '-'],
+  ];
+  var h = rows.map(function(r) {
+    return '<div class="mod-row"><span class="mod-label">' + r[0] + '</span><span class="mod-val">' + r[1] + '</span></div>';
+  }).join('');
+  document.getElementById('mod-body').innerHTML = h;
+  document.getElementById('mod-detail').className = 'mov on';
+}
+
+function chiudiMod() {
+  document.getElementById('mod-detail').className = 'mov';
+}
+
+// EXPORT CSV
+function exportCSV() {
+  var rows = [['Nome','Cognome','Email','Registrato','Ultimo accesso','Marketing','Workout']];
+  var filtered = allUsers.filter(function(u) {
+    if (currentFilter === 'mkt') return u.marketing;
+    if (currentFilter === 'new') return u.created_at && (new Date() - new Date(u.created_at)) / 86400000 <= 7;
+    return true;
+  });
+  filtered.forEach(function(u) {
+    rows.push([
+      u.nm || '', u.cg || '', u.em || '',
+      u.created_at ? new Date(u.created_at).toLocaleDateString('it-IT') : '',
+      u.last_login ? new Date(u.last_login).toLocaleDateString('it-IT') : '',
+      u.marketing ? 'Si' : 'No',
+      u.workout_count || 0
+    ]);
+  });
+  var csv = rows.map(function(r) { return r.map(function(c) { return '"' + String(c).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'myfitlife_utenti_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Chiudi modal cliccando fuori
+document.getElementById('mod-detail').addEventListener('click', function(e) {
+  if (e.target === this) chiudiMod();
+});
+</script>
+</body>
+</html>
