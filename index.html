@@ -129,6 +129,7 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 var ADMIN_PW = '3003TERRY@';
 var allUsers = [];
 var currentFilter = 'all';
+var API_URL = 'https://app.myfitlife.it/api/chat';
 
 function doLogin() {
   var pw = document.getElementById('l-pw').value;
@@ -161,7 +162,7 @@ if (localStorage.getItem('mfl_admin_auth') === '1') {
 
 async function loadUsers() {
   try {
-    var r = await fetch('/api/chat', {
+    var r = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -170,7 +171,14 @@ async function loadUsers() {
       })
     });
 
-    var d = await r.json();
+    var txt = await r.text();
+    var d;
+
+    try {
+      d = JSON.parse(txt);
+    } catch (err) {
+      throw new Error('Risposta non JSON: ' + txt.substring(0, 120));
+    }
 
     if (!r.ok || d.error) {
       throw new Error(d.error || 'Errore caricamento utenti');
@@ -179,6 +187,7 @@ async function loadUsers() {
     allUsers = Array.isArray(d.users) ? d.users : [];
     renderStats();
     renderUsers(allUsers);
+
   } catch (e) {
     document.getElementById('user-list').innerHTML =
       '<div class="empty"><div style="font-size:36px;margin-bottom:10px">⚠️</div><p>Errore caricamento: ' + e.message + '</p></div>';
@@ -232,7 +241,7 @@ function renderUsers(users) {
     h += '<div class="cell">' + last + '</div>';
     h += '<div class="cell">' + stato + '</div>';
     h += '<div class="cell">' + (u.workout_count || 0) + '</div>';
-    h += '<div class="cell"><button class="action-btn" onclick="showDetail(\'' + u.id + '\')">Vedi</button></div>';
+    h += '<div class="cell"><button class="action-btn" onclick="showDetail(\\'' + u.id + '\\')">Vedi</button></div>';
     h += '</div>';
   });
 
