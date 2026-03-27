@@ -126,19 +126,39 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 </div>
 
 <script>
-var ADMIN_PW = '3003TERRY@';
-var API_URL = 'https://app.myfitlife.it/api/chat';
-var allUsers = [];
-var currentFilter = 'all';
+const ADMIN_PW = '3003TERRY@';
+const API_URL = 'https://app.myfitlife.it/api/chat';
+let allUsers = [];
+let currentFilter = 'all';
+
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function showLoginError(msg) {
+  const e = document.getElementById('lerr');
+  e.textContent = msg;
+  e.style.display = 'block';
+}
+
+function hideLoginError() {
+  const e = document.getElementById('lerr');
+  e.textContent = '';
+  e.style.display = 'none';
+}
 
 function doLogin() {
-  var pw = document.getElementById('l-pw').value;
+  const pw = document.getElementById('l-pw').value;
   if (pw !== ADMIN_PW) {
-    var e = document.getElementById('lerr');
-    e.textContent = 'Password errata.';
-    e.style.display = 'block';
+    showLoginError('Password errata.');
     return;
   }
+  hideLoginError();
   localStorage.setItem('mfl_admin_auth', '1');
   document.getElementById('login').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -154,15 +174,9 @@ document.getElementById('l-pw').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') doLogin();
 });
 
-if (localStorage.getItem('mfl_admin_auth') === '1') {
-  document.getElementById('login').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  loadUsers();
-}
-
 async function loadUsers() {
   try {
-    var r = await fetch(API_URL, {
+    const r = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -171,14 +185,14 @@ async function loadUsers() {
       })
     });
 
-    var contentType = r.headers.get('content-type') || '';
-    var txt = await r.text();
+    const txt = await r.text();
+    let d = null;
 
-    if (!contentType.includes('application/json')) {
+    try {
+      d = JSON.parse(txt);
+    } catch (err) {
       throw new Error('Risposta non JSON: ' + txt.substring(0, 140));
     }
-
-    var d = JSON.parse(txt);
 
     if (!r.ok || d.error) {
       throw new Error(d.error || 'Errore caricamento utenti');
@@ -187,18 +201,17 @@ async function loadUsers() {
     allUsers = Array.isArray(d.users) ? d.users : [];
     renderStats();
     renderUsers(allUsers);
-
   } catch (e) {
     document.getElementById('user-list').innerHTML =
-      '<div class="empty"><div style="font-size:36px;margin-bottom:10px">⚠️</div><p>Errore caricamento: ' + e.message + '</p></div>';
+      '<div class="empty"><div style="font-size:36px;margin-bottom:10px">⚠️</div><p>Errore caricamento: ' + escapeHtml(e.message) + '</p></div>';
   }
 }
 
 function renderStats() {
-  var tot = allUsers.length;
-  var confirmed = allUsers.filter(function(u) { return !!u.email_confirmed_at; }).length;
-  var mkt = allUsers.filter(function(u) { return !!u.marketing; }).length;
-  var wktTot = allUsers.reduce(function(a, u) { return a + Number(u.workout_count || 0); }, 0);
+  const tot = allUsers.length;
+  const confirmed = allUsers.filter(u => !!u.email_confirmed_at).length;
+  const mkt = allUsers.filter(u => !!u.marketing).length;
+  const wktTot = allUsers.reduce((a, u) => a + Number(u.workout_count || 0), 0);
 
   document.getElementById('s-tot').textContent = tot;
   document.getElementById('s-confirmed').textContent = confirmed;
@@ -214,23 +227,23 @@ function renderUsers(users) {
     return;
   }
 
-  var h = '';
+  let h = '';
 
   users.forEach(function(u) {
-    var reg = u.created_at
+    const reg = u.created_at
       ? new Date(u.created_at).toLocaleDateString('it-IT', { day:'numeric', month:'short', year:'numeric' })
       : '-';
 
-    var lastValue = u.last_login || u.last_sign_in_at;
-    var last = lastValue
+    const lastValue = u.last_login || u.last_sign_in_at;
+    const last = lastValue
       ? new Date(lastValue).toLocaleDateString('it-IT', { day:'numeric', month:'short' })
       : '-';
 
-    var isNew = u.created_at && ((new Date() - new Date(u.created_at)) / 86400000 <= 7);
-    var nomeCompleto = ((u.nm || '') + ' ' + (u.cg || '')).trim();
+    const isNew = u.created_at && ((new Date() - new Date(u.created_at)) / 86400000 <= 7);
+    let nomeCompleto = ((u.nm || '') + ' ' + (u.cg || '')).trim();
     if (!nomeCompleto) nomeCompleto = '(senza profilo)';
 
-    var stato = u.email_confirmed_at
+    const stato = u.email_confirmed_at
       ? '<span class="pill confirmed">Confermato</span>'
       : '<span class="pill pending">Da confermare</span>';
 
@@ -250,18 +263,20 @@ function renderUsers(users) {
 
 function setFilter(f) {
   currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(function(b) { b.className = 'filter-btn'; });
+  document.querySelectorAll('.filter-btn').forEach(function(b) {
+    b.className = 'filter-btn';
+  });
   document.getElementById('f-' + f).className = 'filter-btn on';
   filterUsers();
 }
 
 function filterUsers() {
-  var q = document.getElementById('search').value.toLowerCase();
+  const q = document.getElementById('search').value.toLowerCase();
 
-  var filtered = allUsers.filter(function(u) {
-    var nome = ((u.nm || '') + ' ' + (u.cg || '')).toLowerCase();
-    var email = (u.email || '').toLowerCase();
-    var match = !q || nome.includes(q) || email.includes(q);
+  const filtered = allUsers.filter(function(u) {
+    const nome = ((u.nm || '') + ' ' + (u.cg || '')).toLowerCase();
+    const email = (u.email || '').toLowerCase();
+    const match = !q || nome.includes(q) || email.includes(q);
     if (!match) return false;
 
     if (currentFilter === 'confirmed') return !!u.email_confirmed_at;
@@ -274,12 +289,12 @@ function filterUsers() {
 }
 
 function showDetail(id) {
-  var u = allUsers.find(function(x) { return x.id === id; });
+  const u = allUsers.find(x => x.id === id);
   if (!u) return;
 
   document.getElementById('mod-nm').textContent = (((u.nm || '') + ' ' + (u.cg || '')).trim() || 'Dettaglio utente');
 
-  var rows = [
+  const rows = [
     ['ID', u.id || '-'],
     ['Email', u.email || '-'],
     ['Email confermata', u.email_confirmed_at ? 'Si' : 'No'],
@@ -314,13 +329,10 @@ document.getElementById('mod-detail').addEventListener('click', function(e) {
   if (e.target === this) chiudiMod();
 });
 
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
+if (localStorage.getItem('mfl_admin_auth') === '1') {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadUsers();
 }
 </script>
 </body>
