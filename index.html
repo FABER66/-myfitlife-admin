@@ -127,9 +127,9 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 
 <script>
 var ADMIN_PW = '3003TERRY@';
+var API_URL = 'https://app.myfitlife.it/api/chat';
 var allUsers = [];
 var currentFilter = 'all';
-var API_URL = 'https://app.myfitlife.it/api/chat';
 
 function doLogin() {
   var pw = document.getElementById('l-pw').value;
@@ -171,14 +171,14 @@ async function loadUsers() {
       })
     });
 
+    var contentType = r.headers.get('content-type') || '';
     var txt = await r.text();
-    var d;
 
-    try {
-      d = JSON.parse(txt);
-    } catch (err) {
-      throw new Error('Risposta non JSON: ' + txt.substring(0, 120));
+    if (!contentType.includes('application/json')) {
+      throw new Error('Risposta non JSON: ' + txt.substring(0, 140));
     }
+
+    var d = JSON.parse(txt);
 
     if (!r.ok || d.error) {
       throw new Error(d.error || 'Errore caricamento utenti');
@@ -235,8 +235,8 @@ function renderUsers(users) {
       : '<span class="pill pending">Da confermare</span>';
 
     h += '<div class="table-row">';
-    h += '<div class="user-info"><div class="name">' + nomeCompleto + (isNew ? ' <span class="pill new">Nuovo</span>' : '') + '</div><div class="sub">' + (u.email || '-') + '</div></div>';
-    h += '<div class="cell" style="font-size:12px;word-break:break-all">' + (u.email || '-') + '</div>';
+    h += '<div class="user-info"><div class="name">' + escapeHtml(nomeCompleto) + (isNew ? ' <span class="pill new">Nuovo</span>' : '') + '</div><div class="sub">' + escapeHtml(u.email || '-') + '</div></div>';
+    h += '<div class="cell" style="font-size:12px;word-break:break-all">' + escapeHtml(u.email || '-') + '</div>';
     h += '<div class="cell">' + reg + '</div>';
     h += '<div class="cell">' + last + '</div>';
     h += '<div class="cell">' + stato + '</div>';
@@ -300,7 +300,7 @@ function showDetail(id) {
   ];
 
   document.getElementById('mod-body').innerHTML = rows.map(function(r) {
-    return '<div class="mod-row"><span class="mod-label">' + r[0] + '</span><span class="mod-val">' + r[1] + '</span></div>';
+    return '<div class="mod-row"><span class="mod-label">' + escapeHtml(r[0]) + '</span><span class="mod-val">' + escapeHtml(String(r[1])) + '</span></div>';
   }).join('');
 
   document.getElementById('mod-detail').className = 'mov on';
@@ -313,6 +313,15 @@ function chiudiMod() {
 document.getElementById('mod-detail').addEventListener('click', function(e) {
   if (e.target === this) chiudiMod();
 });
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
 </script>
 </body>
 </html>
